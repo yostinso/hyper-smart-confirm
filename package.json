@@ -1,0 +1,24 @@
+{
+  "name": "hyper-smart-confirm",
+  "version": "0.1.7",
+  "description": "Show a confirmation dialog before quitting Hyper if apps are open",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yostinso/hyper-smart-confirm.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yostinso/hyper-smart-confirm/issues"
+  },
+  "homepage": "https://github.com/yostinso/hyper-smart-confirm#readme",
+  "keywords": [
+    "hyper.app",
+    "hyper",
+    "hyperterm",
+    "plugin",
+    "system",
+    "confirm"
+  ],
+  "author": "E.O. Stinson <yostinso@aradine.com>",
+  "license": "MIT"
+}

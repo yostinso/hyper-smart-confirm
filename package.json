@@ -7,6 +7,9 @@
     "type": "git",
     "url": "https://github.com/yostinso/hyper-smart-confirm.git"
   },
+  "dependencies": {
+    "ps-list": "= 5.0.1"
+  },
   "bugs": {
     "url": "https://github.com/yostinso/hyper-smart-confirm/issues"
   },

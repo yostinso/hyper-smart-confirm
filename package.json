@@ -1,6 +1,6 @@
 {
   "name": "hyper-smart-confirm",
-  "version": "0.1.7",
+  "version": "1.0.1",
   "description": "Show a confirmation dialog before quitting Hyper if apps are open",
   "main": "index.js",
   "repository": {

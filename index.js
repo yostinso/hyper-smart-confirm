@@ -1,3 +1,4 @@
+const { Console } = require('console');
 const { app, dialog } = require('electron');
 const remote = require('electron').remote;
 const psList = require('ps-list');
@@ -9,20 +10,22 @@ let setPidsHandler;
 let runningPids = {};
 let debugEnabled = null;
 
+const logger = new Console(process.stdout, process.stderr);
+const debugLog = (...args) => {
+  if (debugEnabled === null) { debugEnabled = !!debugEnabledSelector(); }
+  if (debugEnabled) {
+    logger.log(...args);
+  }
+}
+
+
 const getConfig = () => decoratedConfig ? decoratedConfig : window.config.getConfig();
 const pluginConfigSelector = () => getConfig().hyperSmartConfirm || {};
 const enabledSelector = () => pluginConfigSelector().enabled;
 const ignoredSelector = () => pluginConfigSelector().ignored;
 const ignoreShellSelector = () => pluginConfigSelector().ignoreShell;
 const enabledForWindowsSelector = () => pluginConfigSelector().enabledForWindows;
-const debugEnabledSelector = () => pluginConfigSelector().debugEnabled;
-
-const debugLog = () => {
-  if (debugEnabled === null) { debugEnabled = !!debugEnabledSelector(); }
-  if (debugEnabled) {
-    console.log.apply(console, arguments);
-  }
-}
+const debugEnabledSelector = () => pluginConfigSelector().debug;
 
 const askConfirmQuit = (actionName, message, detail) => {
   return new Promise((resolve) => {
@@ -69,7 +72,7 @@ const promptToQuit = (ptys, actionName) => {
           'The following processes are active:\n' + runningNames.map((rn) => "  " + rn).join("\n")
         ).then((result) => resolve(result));
       } else {
-        console.log("Quit now; no children");
+        debugLog("Quit now; no children");
         resolve(true);
       }
     });
@@ -84,7 +87,7 @@ const createQuitHandler = (app) => {
       const ptys = Array.from(app.getWindows()).map(({ sessions }) => {
         return Array.from(sessions.values()).map(({ pty }) => pty);
       }).reduce((memo, ptys) => memo.concat(ptys), []);
-      console.log("App closed with pids ", ptys.map((pty) => pty.pid));
+      debugLog("App closed with pids %j", ptys.map((pty) => pty.pid));
       const ignored = ignoredSelector();
       promptToQuit(pty, "Quit Hyper", ignored).then((shouldQuit) => {
         if (shouldQuit) {
@@ -104,7 +107,7 @@ const createCloseWindowHandler = (win) => {
     if (enabledForWindows && !closing && !quitting) {
       evt.preventDefault();
       const ptys = Array.from(win.sessions.values()).map(({ pty }) => pty);
-      console.log("Window ", win.getTitle(), ":", win.id, " closed with pids ", ptys.map((pty) => pty.pid));
+      debugLog("Window %s (%d): closed with pids: %j", win.getTitle(), win.id, ptys.map((pty) => pty.pid));
       promptToQuit(ptys, "Close window", ignored).then((shouldQuit) => {
         if (shouldQuit) {
           closing = true;
@@ -137,13 +140,13 @@ exports.middleware = (store) => (next) => (action) => {
   if (action.type === 'TERM_GROUP_EXIT' && enabledForWindows) {
     const {sessionUid} = store.getState().termGroups.termGroups[action.uid];
     const {shell, pid} = store.getState().sessions.sessions[sessionUid];
-    console.log("Session ", sessionUid, " closed with pid ", pid);
+    debugLog("Session %s closed with pid %d", sessionUid, pid);
     promptToQuit([{ shell, pid }], "Close session").then((shouldQuit) => {
       if (shouldQuit) {
-        console.log("Quitting...");
+        debugLog("Quitting...");
         next(action);
       } else {
-        console.log("Quit cancelled...");
+        debugLog("Quit cancelled...");
       }
     });
   } else {
@@ -168,7 +171,7 @@ exports.onApp = (app) => {
 };
 
 exports.onUnload = (app) => {
-  console.log("Plugin unload");
+  debugLog("Plugin unload");
   if (quitHandler) {
     app.off('before-quit', quitHandler);
     quitHandler = null;

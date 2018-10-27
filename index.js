@@ -1,3 +1,4 @@
+const util = require('util');
 const { Console } = require('console');
 const { app, dialog } = require('electron');
 const remote = require('electron').remote;
@@ -73,6 +74,18 @@ const promptToQuit = (ptys, actionName) => {
         ).then((result) => resolve(result));
       } else {
         debugLog("Quit now; no children");
+        resolve(true);
+      }
+    }).catch((error) => {
+      if (error && error.cmd && error.code === 1) {
+        // ps-list / child-process bug I think
+        askConfirmQuit(
+          actionName,
+          actionName + '?',
+          util.format("An error occurred fetching currently running processes.\n%j", error)
+        ).then((result) => resolve(result));
+      } else {
+        debugLog("Unknown error on quit; quitting.");
         resolve(true);
       }
     });

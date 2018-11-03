@@ -186,7 +186,7 @@ exports.onApp = (app) => {
 exports.onUnload = (app) => {
   debugLog("Plugin unload");
   if (quitHandler) {
-    app.off('before-quit', quitHandler);
+    app.removeListener('before-quit', quitHandler);
     quitHandler = null;
   } // Plugin was reloaded
 };
